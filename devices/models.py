@@ -19,7 +19,7 @@ class Telemetry(models.Model):
     timestamp = models.DateTimeField(db_index=True)
 
     def __str__(self):
-        return f"{self.device} - {self.temperature}"
+        return f"{self.device.name} - {self.temperature}"
 
 # Created automatically when a device's temperature exceeds the allowed limit
 class Alert(models.Model):
@@ -32,4 +32,4 @@ class Alert(models.Model):
     is_resolved = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.device} - {self.alert_type} - {self.is_resolved}"
+        return f"{self.device.name} - {self.alert_type} - {self.is_resolved}"
