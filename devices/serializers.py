@@ -10,9 +10,6 @@ class DeviceSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at"]
 
 # Serializer for Telemetry model.
-
-
-# and creates a high-temperature Alert if temperature > 70.
 class TelemetrySerializer(serializers.ModelSerializer):
     # Expects 'device_code' (write-only) instead of 'device' id.
     device_code = serializers.CharField(max_length=50, write_only=True)
@@ -38,7 +35,7 @@ class TelemetrySerializer(serializers.ModelSerializer):
 # Read-only serializer for the /devices/{id}/latest/ endpoint.
 # Combines fields from both Telemetry and Device (device_code).
 class DeviceLatestSerializer(serializers.Serializer):
-    device = serializers.CharField(source = "device.device_code")
+    device = serializers.CharField(source="device.device_code")
     temperature = serializers.DecimalField(max_digits=4, decimal_places=2)
     power = serializers.IntegerField()
     voltage = serializers.IntegerField()

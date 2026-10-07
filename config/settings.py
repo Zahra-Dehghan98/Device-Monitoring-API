@@ -134,8 +134,8 @@ MAILERS = {
     },
 }
 
-# Pagination for telemetry history (cursor is better for time-series data)
+# Default pagination for all list endpoints (cursor-based).
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "devices.pagination.StandardCursorPagination",
     "PAGE_SIZE": 10,
-    }
+}
