@@ -20,8 +20,8 @@ class TelemetrySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         device_code = validated_data.pop("device_code")
         device = get_object_or_404(Device, device_code=device_code)
-        # resolves device_code to a Device, saves the telemetry
         validated_data["device"] = device
+        # resolves device_code to a Device, saves the telemetry
         instance = super().create(validated_data)
         # creates a high-temperature Alert if temperature > 70.
         if instance.temperature > 70:
@@ -30,6 +30,9 @@ class TelemetrySerializer(serializers.ModelSerializer):
                 alert_type=Alert.ALERT_TYPE_CHOICES.HIGH_TEMPERATURE,
                 recorded_value=instance.temperature,
             )
+        # auto-resolve alerts when temperature drops below threshold
+        else:
+            Alert.objects.filter(device=device, is_resolved=False).update(is_resolved=True)
         return instance
 
 # Read-only serializer for the /devices/{id}/latest/ endpoint.
