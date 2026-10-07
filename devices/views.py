@@ -6,16 +6,18 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django.utils.dateparse import parse_datetime
+from .pagination import StandardCursorPagination, TelemetryCursorPagination
 
 # ViewSet for devices.Provides full CRUD (list, create, retrieve, update, delete).
 # Custom actions: latest, telemetry
 class DeviceViewSet(viewsets.ModelViewSet):
     serializer_class = DeviceSerializer
     queryset = Device.objects.all()
+    pagination_class = StandardCursorPagination
 
-    #latest: returns the most recent telemetry for a device
+    # latest: returns the most recent telemetry for a device
     @action(detail=True, methods=["get"])
-    def latest(self):
+    def latest(self, request, pk=None):
         device = self.get_object()
         telemetry = device.telemetries.select_related("device").order_by("-timestamp").first()
         if telemetry is None:
@@ -23,16 +25,17 @@ class DeviceViewSet(viewsets.ModelViewSet):
         else:
             return Response(DeviceLatestSerializer(telemetry).data)
         
-    #telemetry: returns telemetry history filtered by ?from=&to= (paginated)
+    # telemetry: returns telemetry history filtered by ?from=&to= (paginated)
     @action(detail=True, methods=["get"])
-    def telemetry(self):
+    def telemetry(self, request, pk=None):
         device = self.get_object()
         from_param = parse_datetime(self.request.query_params.get("from"))
         to_param = parse_datetime(self.request.query_params.get("to"))
         if from_param is None or to_param is None:
             raise ValidationError("'from' and 'to' are required")
         else:
-            telemetry = device.telemetries.filter(timestamp__gte=from_param, timestamp__lte=to_param).order_by("-timestamp")
+            telemetry = device.telemetries.filter(timestamp__gte=from_param, timestamp__lte=to_param)
+            self.pagination_class = TelemetryCursorPagination
             page = self.paginate_queryset(telemetry)
             serializer = TelemetrySerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
@@ -49,4 +52,5 @@ class TelemetryViewSet(CreateModelMixin, viewsets.GenericViewSet):
 class AlertViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AlertSerializer
     queryset = Alert.objects.select_related("device").all()
+    pagination_class = StandardCursorPagination
 

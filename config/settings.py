@@ -136,6 +136,6 @@ MAILERS = {
 
 # Pagination for telemetry history (cursor is better for time-series data)
 REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.CursorPagination",
+    "DEFAULT_PAGINATION_CLASS": "devices.pagination.StandardCursorPagination",
     "PAGE_SIZE": 10,
     }

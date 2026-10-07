@@ -47,6 +47,7 @@ class DeviceLatestSerializer(serializers.Serializer):
 # Read-only serializer for Alert model.
 # Alerts are created automatically by the server, not by clients.        
 class AlertSerializer(serializers.ModelSerializer):
+    device = serializers.CharField(source = "device.device_code")
     class Meta:
         model = Alert
         fields = ["device", "alert_type", "recorded_value", "created_at", "is_resolved"]
