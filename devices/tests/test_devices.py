@@ -1,5 +1,5 @@
 from rest_framework.test import APITestCase
-from ..factories import DeviceFactory, TelemetryFactory
+from ..factories import DeviceFactory
 from ..models import Device
 
 class DeviceApiTestCase(APITestCase):
@@ -12,7 +12,7 @@ class DeviceApiTestCase(APITestCase):
         self.assertEqual(Device.objects.count(), 1)
 
     def test_devices_list(self):
-         # Listing devices should return 200 with all devices (paginated).
+        # Listing devices should return 200 with all devices (paginated).
         DeviceFactory.create_batch(10)
         response = self.client.get("/api/devices/")
         self.assertEqual(response.status_code, 200)
