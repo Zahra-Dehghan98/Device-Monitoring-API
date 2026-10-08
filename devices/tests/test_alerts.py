@@ -3,7 +3,9 @@ from ..factories import DeviceFactory, TelemetryFactory
 from ..models import Alert, Telemetry
 
 class AlertApiTestCase(APITestCase):
+    # Tests for automatic alert creation and resolution via telemetry.
     def setUp(self):
+        # Common setup: one device and a base telemetry payload.
         self.device = DeviceFactory(device_code = "inv-001")
         self.data = {
             "device_code": "inv-001",
@@ -14,6 +16,7 @@ class AlertApiTestCase(APITestCase):
         }
 
     def test_create_alert_gt_70(self):
+        # Temperature above 70 should create an alert.
         self.data["temperature"] = 75
         response = self.client.post("/api/telemetry/", self.data)
         self.assertEqual(response.status_code, 201)
@@ -21,6 +24,7 @@ class AlertApiTestCase(APITestCase):
         self.assertEqual(Alert.objects.count(), 1)
 
     def test_not_create_alert_equal_70(self):
+        # Temperature exactly 70 should NOT create an alert.
         self.data["temperature"] = 70
         response = self.client.post("/api/telemetry/", self.data)
         self.assertEqual(response.status_code, 201)
@@ -28,6 +32,7 @@ class AlertApiTestCase(APITestCase):
         self.assertEqual(Alert.objects.count(), 0)
 
     def test_not_create_alert_lt_70(self):
+        # Temperature below 70 should NOT create an alert.
         self.data["temperature"] = 69
         response = self.client.post("/api/telemetry/", self.data)
         self.assertEqual(response.status_code, 201)
@@ -35,6 +40,7 @@ class AlertApiTestCase(APITestCase):
         self.assertEqual(Alert.objects.count(), 0)
 
     def test_resolve_alert(self):
+        # A later normal reading should mark the open alert as resolved.
         self.data["temperature"] = 75
         self.client.post("/api/telemetry/", self.data)
         self.assertFalse(Alert.objects.first().is_resolved)
@@ -44,6 +50,7 @@ class AlertApiTestCase(APITestCase):
         self.assertTrue(Alert.objects.first().is_resolved)
 
     def test_alert_list(self):
+        # Alert list endpoint should return all alerts.
         for _ in range(10):
             self.data["temperature"] = 75
             self.client.post("/api/telemetry/", self.data)
@@ -52,17 +59,15 @@ class AlertApiTestCase(APITestCase):
         self.assertEqual(Alert.objects.count(), 10)
 
     def test_alert_post_not_allowed(self):
+        # Alerts are read-only; POST should return 405
         data = {}
         response = self.client.post("/api/alerts/", data)
         self.assertEqual(response.status_code, 405)
 
     def test_alert_delete_not_allowed(self):
+        # Alerts are read-only; DELETE should return 405.
         self.data["temperature"] = 75
         self.client.post("/api/telemetry/", self.data)
         alert_id = Alert.objects.first().id
         response = self.client.delete(f"/api/alerts/{alert_id}/")
         self.assertEqual(response.status_code, 405)
-                           
-
-
-

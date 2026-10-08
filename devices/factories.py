@@ -2,6 +2,7 @@ import factory
 from .models import Device, Telemetry, Alert
 from django.utils import timezone
 
+# Factory for Device model. Generates a unique device_code using a sequence.
 class DeviceFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Device
@@ -9,6 +10,7 @@ class DeviceFactory(factory.django.DjangoModelFactory):
     name = factory.Faker("name")
     device_code = factory.Sequence(lambda n: f"inv-{n + 1:03d}")
 
+# Factory for Telemetry model. Creates a related Device automatically.
 class TelemetryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Telemetry

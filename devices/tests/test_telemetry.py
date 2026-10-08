@@ -3,7 +3,9 @@ from ..factories import DeviceFactory
 from ..models import Telemetry
 
 class TelemetryApiTestCase(APITestCase):
+    # Tests for telemetry ingestion and input validation.
     def setUp(self):
+        # Common setup: one device and a valid telemetry payload.
         self.device = DeviceFactory(device_code = "inv-001")
         self.data = {
             "device_code": "inv-001",
@@ -12,6 +14,7 @@ class TelemetryApiTestCase(APITestCase):
             "voltage" : 390,
             "timestamp" : "2026-10-07T10:00:00Z"
             }
+        
     # Valid telemetry should be stored and return 201.
     def test_create_telemetry(self):
         response = self.client.post("/api/telemetry/", self.data)
