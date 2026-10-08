@@ -1,5 +1,5 @@
 from rest_framework.test import APITestCase
-from ..factories import DeviceFactory
+from ..factories import DeviceFactory, TelemetryFactory
 from ..models import Device
 
 class DeviceApiTestCase(APITestCase):
@@ -61,3 +61,43 @@ class DeviceApiTestCase(APITestCase):
         # Missing required fields should return 400.
         response = self.client.post(f"/api/devices/", {})
         self.assertEqual(response.status_code, 400)
+
+    def test_device_latest_telemetry(self):
+        # Latest endpoint should return the most recent telemetry of the device.
+        device = DeviceFactory()
+        device_id = device.id
+        TelemetryFactory.create_batch(10, device=device)
+        response = self.client.get(f"/api/devices/{device_id}/latest/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["device"], device.device_code)
+
+    def test_device_latest_none_telemetry(self):
+        # Latest endpoint should return 404 if the device has no telemetry.
+        device = DeviceFactory()
+        device_id = device.id
+        response = self.client.get(f"/api/devices/{device_id}/latest/")
+        self.assertEqual(response.status_code, 404)
+
+    def test_device_telemetry_history(self):
+        # History endpoint should return telemetry within the given date range.
+        device = DeviceFactory()
+        TelemetryFactory.create_batch(10, device=device, timestamp="2026-10-08T10:00:00Z")
+        device_id = device.id
+        response = self.client.get(f"/api/devices/{device_id}/telemetry/?from=2026-10-07T00:00:00Z&to=2026-10-09T00:00:00Z")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 10)
+
+    def test_device_telemetry_requires_from_to(self):
+        # History endpoint should return 400 if from/to are missing.
+        device = DeviceFactory()
+        TelemetryFactory.create_batch(10, device=device, timestamp="2026-10-08T10:00:00Z")
+        device_id = device.id
+        response = self.client.get(f"/api/devices/{device_id}/telemetry/")
+        self.assertEqual(response.status_code, 400)
+
+    def test_devices_pagination(self):
+        # List endpoint should respect PAGE_SIZE (10).
+        DeviceFactory.create_batch(25)
+        response = self.client.get("/api/devices/")
+        self.assertEqual(len(response.data["results"]), 10)
+
