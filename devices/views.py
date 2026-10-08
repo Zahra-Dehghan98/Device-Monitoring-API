@@ -29,12 +29,12 @@ class DeviceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"])
     def telemetry(self, request, pk=None):
         device = self.get_object()
-        from_param = parse_datetime(self.request.query_params.get("from"))
-        to_param = parse_datetime(self.request.query_params.get("to"))
+        from_param = self.request.query_params.get("from")
+        to_param = self.request.query_params.get("to")
         if from_param is None or to_param is None:
             raise ValidationError("'from' and 'to' are required")
         else:
-            telemetry = device.telemetries.filter(timestamp__gte=from_param, timestamp__lte=to_param)
+            telemetry = device.telemetries.filter(timestamp__gte=parse_datetime(from_param), timestamp__lte=parse_datetime(to_param))
             self.pagination_class = TelemetryCursorPagination
             page = self.paginate_queryset(telemetry)
             serializer = TelemetrySerializer(page, many=True)

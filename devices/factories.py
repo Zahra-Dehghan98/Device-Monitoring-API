@@ -15,6 +15,6 @@ class TelemetryFactory(factory.django.DjangoModelFactory):
 
     device = factory.SubFactory(DeviceFactory)
     temperature = factory.Faker("random_int", min=25, max=70)
-    power = factory.Faker("pyint", min=500, max=3000)
-    voltage = factory.Faker("pyint", min=380, max=400)
+    power = factory.Faker("pyint", min_value=500, max_value=3000)
+    voltage = factory.Faker("pyint", min_value=380, max_value=400)
     timestamp = factory.LazyFunction(timezone.now)
