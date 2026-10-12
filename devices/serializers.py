@@ -13,6 +13,7 @@ class DeviceSerializer(serializers.ModelSerializer):
 class TelemetrySerializer(serializers.ModelSerializer):
     # Expects 'device_code' (write-only) instead of 'device' id.
     device_code = serializers.CharField(max_length=50, write_only=True)
+    device = serializers.CharField(source="device.device_code")
     class Meta:
         model = Telemetry
         fields = ["device_code", "temperature", "power", "voltage", "timestamp"]
