@@ -17,29 +17,12 @@ class TelemetrySerializer(serializers.ModelSerializer):
         model = Telemetry
         fields = ["device_code", "temperature", "power", "voltage", "timestamp"]
 
-    def create(self, validated_data):
-        device_code = validated_data.pop("device_code")
-        device = get_object_or_404(Device, device_code=device_code)
-        validated_data["device"] = device
-        # resolves device_code to a Device, saves the telemetry
-        instance = super().create(validated_data)
-        # creates a high-temperature Alert if temperature > 70.
-        if instance.temperature > 70:
-            Alert.objects.create(
-                device=instance.device,
-                alert_type=Alert.ALERT_TYPE_CHOICES.HIGH_TEMPERATURE,
-                recorded_value=instance.temperature,
-            )
-        # auto-resolve alerts when temperature drops below threshold
-        else:
-            Alert.objects.filter(device=device, is_resolved=False).update(is_resolved=True)
-        return instance
 
 # Read-only serializer for the /devices/{id}/latest/ endpoint.
 # Combines fields from both Telemetry and Device (device_code).
 class DeviceLatestSerializer(serializers.Serializer):
     device = serializers.CharField(source="device.device_code")
-    temperature = serializers.DecimalField(max_digits=4, decimal_places=2)
+    temperature = serializers.DecimalField(max_digits=5, decimal_places=2)
     power = serializers.IntegerField()
     voltage = serializers.IntegerField()
     timestamp = serializers.DateTimeField()

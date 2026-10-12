@@ -13,7 +13,7 @@ class Device(models.Model):
 # Readings (temperature, power, voltage) sent by a device at a specific time
 class Telemetry(models.Model):
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="telemetries")
-    temperature = models.DecimalField(max_digits=4, decimal_places=2)
+    temperature = models.DecimalField(max_digits=5, decimal_places=2)
     power = models.PositiveIntegerField()
     voltage = models.PositiveIntegerField()
     timestamp = models.DateTimeField(db_index=True)
