@@ -1,5 +1,5 @@
 from rest_framework.test import APITestCase
-from ..factories import DeviceFactory
+from ..factories import DeviceFactory, TelemetryFactory
 from ..models import Telemetry
 
 class TelemetryApiTestCase(APITestCase):
@@ -21,11 +21,24 @@ class TelemetryApiTestCase(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Telemetry.objects.count(), 1)
 
-    # Unknown device_code should return 404.
+    # List endpoint should return all telemetry records (paginated).
+    def test_list_telemetry(self):
+        TelemetryFactory.create_batch(10, device=self.device)
+        response = self.client.get("/api/telemetry/")
+        self.assertEqual(len(response.data["results"]), 10)
+
+    # Unknown device_code should return 400.
     def test_invalid_device_code(self):
         self.data["device_code"] = "invalid"
         response = self.client.post("/api/telemetry/", self.data)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
+
+    # Telemetry from an inactive device should return 400.
+    def test_is_not_active_device(self):
+        self.device.is_active=False
+        self.device.save()
+        response = self.client.post("/api/telemetry/", self.data)
+        self.assertEqual(response.status_code, 400)
 
     # Missing required fields should return 400.
     def test_invalid_empty_field(self):
