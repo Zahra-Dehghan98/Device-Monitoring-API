@@ -6,9 +6,10 @@ def process_telemetry(serializer):
     device = Device.objects.filter(device_code=device_code).first()
     if not device:
         raise ValidationError(f"the device {device_code} is not exist")
-    
     if not device.is_active:
         raise ValidationError(f"the device {device_code} is not activate")
+    device_code = serializer.validated_data.pop("device_code")
+    serializer.validated_data["device"] = device
     instance = serializer.save()
     if instance.temperature > 70:
         Alert.objects.create(
